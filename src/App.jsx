@@ -1,9 +1,9 @@
 
 import './App.css'
-import CourseCalculator from './CourseCalculator'
+import SaaSMetricsDashboard from './SaaSMetricsDashboard'
 
 function App() {
-  return <CourseCalculator/>
+  return <SaaSMetricsDashboard/>
 }
 
 export default App
