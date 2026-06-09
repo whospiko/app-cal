@@ -63,7 +63,6 @@ const COURSE_TRACKS = [
   }
 ];
 
-// Flatten for quick searches on change handles
 const ALL_COURSES = COURSE_TRACKS.flatMap(t => t.courses);
 
 export default function CourseCalculator() {
@@ -73,6 +72,11 @@ export default function CourseCalculator() {
   const [students, setStudents] = useState(10);
   const [schoolCutPercent, setSchoolCutPercent] = useState(60);
   const [mgmtFeePercent, setMgmtFeePercent] = useState(20);
+
+  // New states for Dynamic Teacher Rules
+  const [studentThreshold, setStudentThreshold] = useState(10);
+  const [highRate, setHighRate] = useState(8); // Rate for >= threshold
+  const [lowRate, setLowRate] = useState(5);   // Rate for < threshold
 
   const handleCourseChange = (e) => {
     const courseId = e.target.value;
@@ -86,7 +90,10 @@ export default function CourseCalculator() {
   };
 
   const metrics = useMemo(() => {
-    const teacherRate = students >= 10 ? 8 : 5;
+    // Dynamic rule evaluation based on modified settings
+    const isBonusActive = students >= studentThreshold;
+    const teacherRate = isBonusActive ? highRate : lowRate;
+
     const grossRevenue = price * students;
     const schoolShare = grossRevenue * (schoolCutPercent / 100);
     const remainingRevenue = grossRevenue - schoolShare;
@@ -108,6 +115,7 @@ export default function CourseCalculator() {
 
     return {
       teacherRate,
+      isBonusActive,
       grossRevenue,
       schoolShare,
       remainingRevenue,
@@ -117,7 +125,7 @@ export default function CourseCalculator() {
       verdictMessage,
       verdictStyle
     };
-  }, [price, hours, students, schoolCutPercent, mgmtFeePercent]);
+  }, [price, hours, students, schoolCutPercent, mgmtFeePercent, studentThreshold, highRate, lowRate]);
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-slate-950 p-4 font-sans selection:bg-indigo-500 selection:text-white">
@@ -126,10 +134,10 @@ export default function CourseCalculator() {
         {/* Header Title Section */}
         <div className="space-y-1">
           <div className="inline-flex items-center space-x-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full px-3 py-1 text-xs text-indigo-400 font-medium tracking-wide">
-            <span>Financial Manager v3.0</span>
+            <span>Financial Manager v4.0</span>
           </div>
           <h2 className="text-2xl font-black text-white tracking-tight pt-1">Strategy Planner</h2>
-          <p className="text-xs text-slate-400 font-medium">Evaluate pricing across all structural paths.</p>
+          <p className="text-xs text-slate-400 font-medium">Evaluate pricing and custom teacher rules live.</p>
         </div>
 
         <div className="h-px bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
@@ -235,11 +243,51 @@ export default function CourseCalculator() {
           
           <div className="h-px bg-slate-800/60" />
 
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Teacher Bonus Rule</span>
-            <div className="flex space-x-2 text-[10px] font-bold">
-              <span className={`px-2 py-1 rounded-md ${students >= 10 ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : 'bg-slate-900 text-slate-500'}`}>&ge;10 std ($8/h)</span>
-              <span className={`px-2 py-1 rounded-md ${students < 10 ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : 'bg-slate-900 text-slate-500'}`}>&lt;10 std ($5/h)</span>
+          {/* Fully Dynamic Teacher Policy Panel */}
+          <div className="space-y-3">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block">Dynamic Teacher Policy Setup</span>
+            
+            <div className="flex items-center space-x-2 text-xs text-slate-300">
+              <span>If Students are &ge;</span>
+              <input 
+                type="number"
+                value={studentThreshold}
+                onChange={(e) => setStudentThreshold(parseInt(e.target.value) || 0)}
+                className="w-14 px-2 py-1 bg-slate-900 border border-slate-800 text-center rounded-md font-bold text-indigo-400 focus:outline-none focus:border-indigo-500"
+              />
+              <span>pay teacher</span>
+              <div className="relative inline-block">
+                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500">$</span>
+                <input 
+                  type="number"
+                  value={highRate}
+                  onChange={(e) => setHighRate(parseFloat(e.target.value) || 0)}
+                  className="w-14 pl-4 pr-1 py-1 bg-slate-900 border border-slate-800 rounded-md font-bold text-indigo-400 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+              <span>/h</span>
+            </div>
+
+            <div className="flex items-center space-x-2 text-xs text-slate-300">
+              <span>Else if under {studentThreshold} students, pay teacher</span>
+              <div className="relative inline-block">
+                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500">$</span>
+                <input 
+                  type="number"
+                  value={lowRate}
+                  onChange={(e) => setLowRate(parseFloat(e.target.value) || 0)}
+                  className="w-14 pl-4 pr-1 py-1 bg-slate-900 border border-slate-800 rounded-md font-bold text-indigo-400 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+              <span>/h</span>
+            </div>
+
+            {/* Current Status Badge Indicator */}
+            <div className="pt-1 flex items-center justify-between text-[11px] text-slate-400 bg-slate-950/60 p-2 rounded-xl border border-slate-800/40">
+              <span>Current Applied Rate:</span>
+              <span className={`px-2 py-0.5 rounded font-bold ${metrics.isBonusActive ? 'bg-indigo-500/20 text-indigo-400' : 'bg-purple-500/20 text-purple-400'}`}>
+                ${metrics.teacherRate}/h ({metrics.isBonusActive ? 'Bonus Level' : 'Base Level'})
+              </span>
             </div>
           </div>
         </div>
