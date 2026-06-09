@@ -1,24 +1,84 @@
 import React, { useState, useMemo } from 'react';
 
-const COURSES = [
-  { id: 'python', name: 'Python Programming', defaultHours: 40, defaultPrice: 70 },
-  { id: 'data', name: 'Data Analysis with Python', defaultHours: 60, defaultPrice: 120 },
-  { id: 'custom', name: 'Custom Course (Manual Setup)', defaultHours: 0, defaultPrice: 0 }
+// Complete Course Catalog dataset grouped by track
+const COURSE_TRACKS = [
+  {
+    track: "Artificial Intelligence & Data Science Track",
+    courses: [
+      { id: 'python-prog', name: 'Python Programming', defaultHours: 40, defaultPrice: 70 },
+      { id: 'data-analysis', name: 'Data Analysis with Python', defaultHours: 60, defaultPrice: 120 },
+      { id: 'machine-learning', name: 'Machine Learning with Python', defaultHours: 45, defaultPrice: 150 },
+      { id: 'deep-learning', name: 'Deep Learning with Python', defaultHours: 45, defaultPrice: 180 },
+      { id: 'mlops', name: 'MLOps: Machine Learning Operations', defaultHours: 45, defaultPrice: 220 }
+    ]
+  },
+  {
+    track: "Software Development Track",
+    courses: [
+      { id: 'fullstack-web', name: 'Full-Stack Web Development', defaultHours: 60, defaultPrice: 100 },
+      { id: 'ui-ux', name: 'UI/UX Design with Figma', defaultHours: 45, defaultPrice: 75 }
+    ]
+  },
+  {
+    track: "Enterprise Backend Development Track",
+    courses: [
+      { id: 'java-spring', name: 'Java Spring Boot', defaultHours: 48, defaultPrice: 85 }
+    ]
+  },
+  {
+    track: "Cloud & DevOps Track",
+    courses: [
+      { id: 'devops-eng', name: 'DevOps Engineering', defaultHours: 60, defaultPrice: 120 }
+    ]
+  },
+  {
+    track: "Multimedia & Digital Media Track",
+    courses: [
+      { id: 'graphic-design', name: 'Graphic Design', defaultHours: 60, defaultPrice: 100 },
+      { id: 'video-production', name: 'Video Production & Editing', defaultHours: 60, defaultPrice: 100 },
+      { id: 'motion-graphics', name: 'Motion Graphics & Animation', defaultHours: 60, defaultPrice: 100 }
+    ]
+  },
+  {
+    track: "Cybersecurity Track",
+    courses: [
+      { id: 'cyber-fundamentals', name: 'Cybersecurity Fundamentals', defaultHours: 45, defaultPrice: 75 },
+      { id: 'ethical-hacking', name: 'Ethical Hacking and Penetration Testing', defaultHours: 60, defaultPrice: 120 },
+      { id: 'network-security', name: 'Network Security', defaultHours: 45, defaultPrice: 120 },
+      { id: 'soc-fundamentals', name: 'Security Operations Center (SOC) Fundamentals', defaultHours: 45, defaultPrice: 120 }
+    ]
+  },
+  {
+    track: "IT Support & Digital Skills Track",
+    courses: [
+      { id: 'computer-repair', name: 'Computer Repair and Maintenance', defaultHours: 50, defaultPrice: 80 },
+      { id: 'ms-office', name: 'Microsoft Office', defaultHours: 45, defaultPrice: 75 }
+    ]
+  },
+  {
+    track: "Custom Layout",
+    courses: [
+      { id: 'custom', name: 'Custom Course (Manual Setup)', defaultHours: 0, defaultPrice: 0 }
+    ]
+  }
 ];
 
+// Flatten for quick searches on change handles
+const ALL_COURSES = COURSE_TRACKS.flatMap(t => t.courses);
+
 export default function CourseCalculator() {
-  const [selectedCourseId, setSelectedCourseId] = useState(COURSES[0].id);
-  const [price, setPrice] = useState(COURSES[0].defaultPrice);
-  const [hours, setHours] = useState(COURSES[0].defaultHours);
+  const [selectedCourseId, setSelectedCourseId] = useState(ALL_COURSES[0].id);
+  const [price, setPrice] = useState(ALL_COURSES[0].defaultPrice);
+  const [hours, setHours] = useState(ALL_COURSES[0].defaultHours);
   const [students, setStudents] = useState(10);
   const [schoolCutPercent, setSchoolCutPercent] = useState(60);
-  const [mgmtFeePercent, setMgmtFeePercent] = useState(20); // New State for Mgmt Fee
+  const [mgmtFeePercent, setMgmtFeePercent] = useState(20);
 
   const handleCourseChange = (e) => {
     const courseId = e.target.value;
     setSelectedCourseId(courseId);
     
-    const targetCourse = COURSES.find(c => c.id === courseId);
+    const targetCourse = ALL_COURSES.find(c => c.id === courseId);
     if (targetCourse) {
       setPrice(targetCourse.defaultPrice);
       setHours(targetCourse.defaultHours);
@@ -31,11 +91,8 @@ export default function CourseCalculator() {
     const schoolShare = grossRevenue * (schoolCutPercent / 100);
     const remainingRevenue = grossRevenue - schoolShare;
     
-    // Calculate management fee out of your organization's share
     const managementFee = remainingRevenue * (mgmtFeePercent / 100);
     const teacherCost = teacherRate * hours;
-    
-    // Net profit after school cut, management fees, and teacher payouts
     const netProfit = remainingRevenue - managementFee - teacherCost;
 
     let verdictMessage = "🎯 OPTIMIZED: Healthy profit split for your team.";
@@ -69,27 +126,31 @@ export default function CourseCalculator() {
         {/* Header Title Section */}
         <div className="space-y-1">
           <div className="inline-flex items-center space-x-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full px-3 py-1 text-xs text-indigo-400 font-medium tracking-wide">
-            <span>Financial Manager v2.1</span>
+            <span>Financial Manager v3.0</span>
           </div>
           <h2 className="text-2xl font-black text-white tracking-tight pt-1">Strategy Planner</h2>
-          <p className="text-xs text-slate-400 font-medium">Balance costs, fees, rates, and payouts in real-time.</p>
+          <p className="text-xs text-slate-400 font-medium">Evaluate pricing across all structural paths.</p>
         </div>
 
         <div className="h-px bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
 
-        {/* 1. Template Input Menu */}
+        {/* 1. Template Input Selection Menu */}
         <div className="space-y-2">
-          <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block">Course Template</label>
+          <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block">Select Course Template</label>
           <div className="relative">
             <select 
               value={selectedCourseId}
               onChange={handleCourseChange}
               className="w-full p-3 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all cursor-pointer appearance-none"
             >
-              {COURSES.map(course => (
-                <option key={course.id} value={course.id} className="bg-slate-900 text-slate-300">
-                  {course.name} {course.id !== 'custom' && `($${course.defaultPrice} / ${course.defaultHours}h)`}
-                </option>
+              {COURSE_TRACKS.map(group => (
+                <optgroup key={group.track} label={group.track} className="bg-slate-950 text-indigo-400 font-semibold text-xs">
+                  {group.courses.map(course => (
+                    <option key={course.id} value={course.id} className="bg-slate-900 text-slate-300 font-normal text-sm">
+                      {course.name} {course.id !== 'custom' && `($${course.defaultPrice} / ${course.defaultHours}h)`}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
@@ -140,7 +201,7 @@ export default function CourseCalculator() {
           />
         </div>
 
-        {/* 4. Infrastructure Split Matrix (With New Management Fee Slider) */}
+        {/* 4. Split Matrix Policies */}
         <div className="bg-slate-950/40 border border-slate-800/60 rounded-2xl p-4 space-y-4">
           <div className="space-y-2">
             <div className="flex justify-between text-xs font-medium">
